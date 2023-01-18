@@ -1,0 +1,42 @@
+{
+  "root": true,
+  "ignorePatterns": ["**/*.d.ts"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "overrides": [
+    {
+      "files": "**/*.+(ts|tsx)",
+      "parser": "@typescript-eslint/parser",
+      "plugins": [
+        "@typescript-eslint",
+        "eslint-comments",
+        "simple-import-sort"
+      ],
+      "rules": {
+        "react/prop-types": "off",
+        "react/require-default-props": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/naming-convention": "off",
+        "@typescript-eslint/no-shadow": "warn",
+        "@typescript-eslint/no-use-before-define": ["off"],
+        "simple-import-sort/imports": "error",
+        "import/prefer-default-export": "off",
+        "no-underscore-dangle": "off",
+        "consistent-return": "off"
+      },
+      "parserOptions": {
+        "project": ["./tsconfig.json"] // Specify it only for TypeScript files
+      }
+    }
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
+}

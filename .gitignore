@@ -1,0 +1,4 @@
+/abi
+/node_modules
+!abi/base_abi_token.json 
+.env

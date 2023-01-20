@@ -1,7 +1,8 @@
 import { AbiItem } from "web3-utils";
 
 import app from "./app";
-import Message, { MessageType } from "./types/type.message";
+import Message from "./operations/massage";
+import { MessageType } from "./types/type.message";
 import { Transaction, TransactionByContract } from "./types/type.transaction";
 import utils from "./utils/utils";
 

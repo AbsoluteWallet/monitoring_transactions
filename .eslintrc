@@ -1,12 +1,16 @@
 {
   "root": true,
   "ignorePatterns": ["**/*.d.ts"],
+
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "prettier"
   ],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
   "overrides": [
     {
       "files": "**/*.+(ts|tsx)",

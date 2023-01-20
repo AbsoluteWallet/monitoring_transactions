@@ -1,5 +1,4 @@
-import { AbiInput,AbiItem } from "web3-utils";
-
+import { AbiItem } from "web3-utils";
 
 interface Transaction {
   blockHash: string;
@@ -18,7 +17,6 @@ interface Transaction {
   s: string;
 }
 
-
 interface TransactionByContract {
   tx: Transaction;
   abi?: Array<AbiItem>;
@@ -26,6 +24,5 @@ interface TransactionByContract {
   signature?: string;
   functionInput?: any;
 }
-
 
 export type { Transaction, TransactionByContract };

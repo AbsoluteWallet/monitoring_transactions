@@ -1,9 +1,9 @@
 import axios from "axios";
 import fs from "fs";
-import { MessageType } from "src/types/type.message";
 import { AbiItem } from "web3-utils";
 
 import baseABI from "../../abi/base_abi_token.json";
+import { MessageType } from "../types/type.message";
 import config from "./config";
 
 class UtilsWork {

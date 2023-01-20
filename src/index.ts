@@ -25,17 +25,12 @@ class TransactionChecker {
         const message = await tr.tecectCall(tx);
 
         try {
-          // if (message) {
-          //   console.log(message);
-          //   utils.sendMessage(message, "rota199804@gmail.com");
-          // }
           config.checkUser.forEach((e) => {
             if (message?.to === e.address && message.value > 0) {
-              console.log(message);
+              utils.sendMessage(message, "rota199804@gmail.com");
               utils.sendMessage(message, e.email);
             }
-          })
-          // });
+          });
         } catch (err) {
           console.log(err, message?.explorer);
         }
@@ -47,5 +42,9 @@ class TransactionChecker {
 let preLastBlockNumber = 0;
 setInterval(function () {
   const transactionChecker = new TransactionChecker();
-  transactionChecker.checkBlock();
-}, 4 * 1000);
+  try {
+    transactionChecker.checkBlock();
+  } catch (err) {
+    transactionChecker.checkBlock();
+  }
+}, 2 * 1000);

@@ -1,23 +1,26 @@
-import { MessageFromContract } from "../types/type.message";
-import { TransactionByContract } from "../types/type.transaction";
-import config from "../utils/config";
+import { TransactionLog, TransactionReceipt } from "../types/type.transaction";
+// import utils from "../utils/utils";
 
 abstract class OpeartionAbstract {
-  public data: MessageFromContract;
-  public tc!: Required<TransactionByContract>;
+  public name: string;
+  public event: TransactionLog;
+  public block: any;
+  public tx!: Required<TransactionReceipt>;
+  public data: object = new Object();
 
-  constructor(tc: TransactionByContract) {
-    this.data = {
-      decimals: config.decimals,
-      symbol: config.coin,
-      to: tc.tx.to,
-      constractToken: config.baseToken,
-      value: Number(tc.tx.value),
-      tokenCount: Number(tc.tx.value) / Math.pow(10, config.decimals),
-    };
+  constructor(
+    tx: TransactionReceipt,
+    event: TransactionLog,
+    name: string,
+    block: any
+  ) {
+    this.tx = tx;
+    this.name = name;
+    this.block = block;
+    this.event = event;
   }
 
-  abstract readContract(): Promise<MessageFromContract>;
+  // abstract read(): Promise<void>;
 }
 
 export default OpeartionAbstract;

@@ -1,5 +1,3 @@
-import { AbiItem } from "web3-utils";
-
 interface Transaction {
   blockHash: string;
   blockNumber: number;
@@ -17,12 +15,32 @@ interface Transaction {
   s: string;
 }
 
-interface TransactionByContract {
-  tx: Transaction;
-  abi?: Array<AbiItem>;
-  functionCall?: AbiItem;
-  signature?: string;
-  functionInput?: any;
+interface TransactionReceipt {
+  blockHash: string;
+  blockNumber: number;
+  contractAddress: string | undefined;
+  cumulativeGasUsed: number;
+  from: string;
+  gasUsed: number;
+  logs: Array<TransactionLog>;
+  logsBloom: string;
+  status: true;
+  to: string;
+  transactionHash: string;
+  transactionIndex: number;
 }
 
-export type { Transaction, TransactionByContract };
+interface TransactionLog {
+  address: string;
+  topics: Array<any>;
+  data: string;
+  blockNumber: number;
+  transactionHash: string;
+  transactionIndex: number;
+  blockHash: string;
+  logIndex: number;
+  removed: boolean;
+  id: string;
+}
+
+export type { Transaction, TransactionReceipt, TransactionLog };

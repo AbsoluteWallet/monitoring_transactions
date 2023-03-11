@@ -1,56 +1,31 @@
-import { AbiItem } from "web3-utils";
-
-import app from "./app";
-import Message from "./operations/massage";
-import { MessageType } from "./types/type.message";
-import { Transaction, TransactionByContract } from "./types/type.transaction";
-import utils from "./utils/utils";
+import Transfer from "./operations/transfer";
+import { TransactionReceipt } from "./types/type.transaction";
 
 class DetectTranascion {
-  async tecectCall(tx: Transaction): Promise<MessageType | undefined> {
-    const tc: TransactionByContract = {
-      tx: tx,
-    };
-    if (tx.input !== "0x") {
-      tc.abi = await utils.getAbiData(tx.to);
-      tc.signature = utils.getSignature(tx.input);
-      tc.functionCall = await this.getInput(tc.abi, tc.signature);
-      if (!tc.functionCall || !tc.abi) return undefined;
-      tc.functionInput = app.web3.eth.abi.decodeParameters(
-        tc.functionCall?.inputs,
-        tx.input.slice(10)
-      );
-      if (tc.functionInput) {
-        for (const [key, value] of Object.entries(tc.functionInput)) {
-          if (!utils.isNumber(key) && app.web3.utils.isAddress(value)) {
-            const message = new Message(tc);
-            return await message.getMessage();
-          }
-        }
-      }
-    } else {
-      const message = new Message(tc);
-      return await message.getMessage();
-    }
+  public tx: TransactionReceipt;
+  public block: any;
+
+  constructor(tx: TransactionReceipt, block: any) {
+    this.tx = tx;
+    this.block = block;
   }
 
-  async getInput(abi: AbiItem[], signature: string) {
-    let item: AbiItem | undefined = await app.redis.get(signature);
-    if (item) return item;
-    try {
-      abi.forEach((e: AbiItem) => {
-        if (e.inputs) {
-          const key = app.web3.eth.abi.encodeFunctionSignature(e);
-          if (key == signature) {
-            app.redis.add(key, e);
-            item = e;
-          }
+  async detectCall(): Promise<any> {
+    if (this.tx.logs.length) {
+      this.tx.logs.forEach((event: any) => {
+        if (
+          event.topics[0] ==
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+        ) {
+          const op = new Transfer(this.tx, event, this.block);
+          op.read().then((result) => {
+            console.log(result, "0000");
+          });
         }
       });
-    } catch (error) {
-      console.error(error);
+    } else {
+      console.log("=====");
     }
-    return item;
   }
 }
 

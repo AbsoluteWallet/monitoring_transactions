@@ -1,6 +1,8 @@
-import RedisCache from "../utils/redis";
+import ClientPG from "../utils/db";
+import ClientRMQ from "../utils/rmq";
 
 export default interface App {
-  redis: RedisCache;
+  db: ClientPG;
+  rmq: ClientRMQ;
   web3: any;
 }

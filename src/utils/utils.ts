@@ -1,76 +1,70 @@
 import axios from "axios";
-import fs from "fs";
-import { AbiItem } from "web3-utils";
-
-import baseABI from "../../abi/base_abi_token.json";
-import { MessageType } from "../types/type.message";
-import config from "./config";
 
 class UtilsWork {
-  getSignature(signature: string): string {
-    // Получаем первые 4 байта
-    return signature.slice(0, 10);
+  public TOKEN_ABI_ERC20: Array<object>;
+  public TRANSFER_EVENT_ABI: Array<object>;
+  public network: any;
+
+  constructor() {
+    this.TOKEN_ABI_ERC20 = [
+      {
+        constant: true,
+        inputs: [],
+        name: "symbol",
+        outputs: [
+          {
+            name: "",
+            type: "string",
+          },
+        ],
+        payable: false,
+        stateMutability: "view",
+        type: "function",
+      },
+      {
+        constant: true,
+        inputs: [],
+        name: "decimals",
+        outputs: [
+          {
+            name: "",
+            type: "uint8",
+          },
+        ],
+        payable: false,
+        stateMutability: "view",
+        type: "function",
+      },
+    ];
+    this.TRANSFER_EVENT_ABI = [
+      {
+        type: "address",
+        name: "from",
+        indexed: true,
+      },
+      {
+        type: "address",
+        name: "to",
+        indexed: true,
+      },
+      {
+        type: "uint256",
+        name: "value",
+        indexed: false,
+      },
+    ];
+    this.network = undefined;
+    (async () => {
+      await this.getNetwork();
+    })();
   }
 
-  capitalizeFirstLetter(string: string) {
-    // Преобразование название swap -> Swap
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-
-  upperCaseArray(input: string): string {
-    // Преобразование название swapTransactionCall -> Swap спли строки по на строки в верхнем регистре
-    const result = input.replace(/([A-Z]+)/g, ",$1").replace(/^,/, "");
-    return result.split(",")[0];
-  }
-
-  getFucntionCall(name: string) {
-    return this.upperCaseArray(name)[0];
-  }
-
-  isNumber(n: any): boolean {
-    return !isNaN(parseFloat(n)) && !isNaN(n - 0);
-  }
-
-  readText(path: string) {
-    return new Promise((resolve, reject) => {
-      fs.readFile(path, "utf8", (err: any, result: any) => {
-        if (err) reject(err);
-        else resolve(result);
-      });
-    });
-  }
-
-  async sendMessage(message: MessageType, email: string) {
-    let later = "";
-    for (const [key, value] of Object.entries(message)) {
-      later += `${key}: ------> ${value}</br>`;
-    }
-    axios.post("http://34.206.40.30:5005/send/email-message", {
-      to_emails: [email],
-      body: later,
-      subject: `Get Operaions ${message.to}`,
-    });
-  }
-
-  async getAbiData(contract: string): Promise<AbiItem[]> {
-    const abiPath = `./abi/${contract}.json`;
-    return await this.readText(abiPath)
-      .then(async (abi: any) => {
-        return JSON.parse(abi);
-      })
-      .catch(async () => {
-        // Делаем запрос на получение ABI в експлорер
-        const response = await axios.get(
-          config.explorer.replace("{constract}", contract)
-        );
-        // Сохраням файл ABI
-        if (response.data.result !== null) {
-          fs.writeFileSync(abiPath, response.data.result);
-          return JSON.parse(response.data.result);
-        } else {
-          return baseABI;
-        }
-      });
+  private async getNetwork() {
+    const response = await axios.get(
+      "https://api-data.absolutewallet.com/api/v1/networks/list?id=clo&page=1&size=300"
+    );
+    this.network = response.data.data[0];
+    return response.data.data[0];
   }
 }
 

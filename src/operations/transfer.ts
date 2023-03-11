@@ -1,26 +1,41 @@
 import app from "../app";
-import { TransactionByContract } from "../types/type.transaction";
+import { TransactionLog, TransactionReceipt } from "../types/type.transaction";
+import utils from "../utils/utils";
 import OpeartionAbstract from "./base";
 
 class Transfer extends OpeartionAbstract {
-  constructor(tc: TransactionByContract) {
-    super(tc);
+  constructor(tx: TransactionReceipt, event: TransactionLog, block: any) {
+    super(tx, event, "Transfer", block);
   }
 
-  async readContract() {
-    const contractInstance = new app.web3.eth.Contract(
-      this.tc.abi,
-      this.tc.tx.to
+  async read() {
+    const transaction = app.web3.eth.abi.decodeLog(
+      utils.TRANSFER_EVENT_ABI,
+      this.event.data,
+      [this.event.topics[1], this.event.topics[2], this.event.topics[3]]
     );
-    const decimals: number = await contractInstance.methods.decimals().call();
-    this.data.decimals = decimals;
-    this.data.constractToken = this.tc.tx.to;
-    this.data.symbol = await contractInstance.methods.symbol().call();
-    this.data.to = this.tc.functionInput.recipient;
-    this.data.value = Number(this.tc.functionInput.amount);
-    this.data.tokenCount =
-      Number(this.tc.functionInput.amount) / Math.pow(10, decimals);
-    return this.data;
+    const contract = new app.web3.eth.Contract(
+      utils.TOKEN_ABI_ERC20,
+      this.event.address
+    );
+    this.collectData(contract).then((data: any) => {
+      const unit = Object.keys(app.web3.utils.unitMap).find(
+        (key) =>
+          app.web3.utils.unitMap[key] ===
+          app.web3.utils
+            .toBN(10)
+            .pow(app.web3.utils.toBN(data.decimals))
+            .toString()
+      );
+      this.data["datail"] = new Object({
+        symdol: data.symbol,
+        decimals: Number(data.decimals),
+        value: Number(app.web3.utils.fromWei(transaction.value, unit)),
+        from: transaction.from,
+        to: transaction.to,
+      });
+      console.log(this.data);
+    });
   }
 }
 

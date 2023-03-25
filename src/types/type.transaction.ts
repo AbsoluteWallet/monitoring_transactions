@@ -1,4 +1,4 @@
-interface Transaction {
+export interface Transaction {
   blockHash: string;
   blockNumber: number;
   from: string;
@@ -15,7 +15,7 @@ interface Transaction {
   s: string;
 }
 
-interface TransactionReceipt {
+export interface TransactionReceipt {
   blockHash: string;
   blockNumber: number;
   contractAddress: string | undefined;
@@ -30,7 +30,7 @@ interface TransactionReceipt {
   transactionIndex: number;
 }
 
-interface TransactionLog {
+export interface TransactionLog {
   address: string;
   topics: Array<any>;
   data: string;
@@ -43,4 +43,36 @@ interface TransactionLog {
   id: string;
 }
 
-export type { Transaction, TransactionReceipt, TransactionLog };
+export interface EventInterface {
+  topic: string;
+  abi: Array<object>;
+}
+
+export enum EventsEnum {
+  DEPOSIT = "DEPOSIT",
+  WITHDROW = "WITHDROW",
+  TRANSFER = "TRANSFER",
+  TRANSFER_NATIVE = "TRANSFER_NATIVE",
+}
+
+interface Detail {
+  symdol: string;
+  decimals: number;
+  value: number;
+  from: number;
+  to: number;
+}
+
+interface PreResult {
+  status: boolean;
+  tx: string;
+  block: number;
+  timestamp: number;
+  event: EventsEnum;
+}
+
+export interface Result extends PreResult {
+  detail: Detail;
+}
+
+export type Event = Record<EventsEnum, EventInterface>;

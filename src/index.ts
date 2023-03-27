@@ -1,6 +1,7 @@
 import axios from "axios";
 import app from "./app";
 import { TransactionReceipt, Event, EventsEnum, TransactionLog } from "./types/type.transaction";
+import { Result } from "./types/type.callback";
 import config from "./utils/config";
 import utils from "./utils/utils";
 
@@ -92,10 +93,10 @@ class TransactionChecker {
         preLastBlockNumber = block.number;
         for (let txHash of block.transactions) {
           app.web3.eth.getTransactionReceipt(txHash).then((tx: TransactionReceipt) => {
-            const result = {
+            const result: Result = {
               status: tx.status,
               tx: tx.blockHash,
-              explore: utils.network.explorer_tx.replace("{tx}", txHash),
+              explorer: utils.network.explorer_tx.replace("{tx}", txHash),
               block: block.number,
               timestamp: block.timestamp,
               network: {
@@ -116,16 +117,16 @@ class TransactionChecker {
                     const unit = Object.keys(app.web3.utils.unitMap).find(
                       (key) =>
                         app.web3.utils.unitMap[key] ===
-                        app.web3.utils.toBN(10).pow(app.web3.utils.toBN(data["decimals"])).toString(),
+                        app.web3.utils.toBN(10).pow(app.web3.utils.toBN(data.decimals)).toString(),
                     );
                     result.event = event[0];
-                    result["detail"] = new Object({
-                      symbol: data["symbol"],
-                      decimals: Number(data["decimals"]),
-                      value: Number(app.web3.utils.fromWei(transaction.value, unit)),
+                    result.detail = {
+                      symbol: data.symbol,
+                      decimals: Number(data.decimals),
+                      value: app.web3.utils.fromWei(transaction.value, unit),
                       from: transaction.from ?? tx.from,
                       to: transaction.to ?? tx.from,
-                    });
+                    };
                     try {
                       axios.post(config.pushUrl, result);
                     } catch (error) {
@@ -137,13 +138,13 @@ class TransactionChecker {
             } else {
               app.web3.eth.getTransaction(txHash).then((data: any) => {
                 const unit = app.web3.utils.toBN(10).pow(app.web3.utils.toBN(config.baseResult.decimals)).toString();
-                result["detail"] = new Object({
+                result.detail = {
                   symbol: config.baseResult.symbol,
                   decimals: config.baseResult.decimals,
-                  value: Number(data.value / unit),
+                  value: data.value / unit,
                   from: data.from,
                   to: data.to,
-                });
+                };
                 try {
                   axios.post(config.pushUrl, result);
                 } catch (error) {

@@ -10,7 +10,7 @@ const config = {
   pushUrl: process.env.PUSH_URL || "http://0.0.0.0:5009/push/send-push",
   baseResult: {
     symbol: process.env.BASE_SYMBOL || "CLO",
-    decimals: process.env.BASE_DECIMALS || 18,
+    decimals: Number(process.env.BASE_DECIMALS) || 18,
   },
 };
 

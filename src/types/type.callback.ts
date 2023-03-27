@@ -1,3 +1,5 @@
+import { EventsEnum } from "./type.transaction";
+
 interface Network {
   id: string;
   name: string;
@@ -25,5 +27,28 @@ interface CallbackBody {
   network: Network;
   transaction: TransactionDetail;
 }
+
+type ResultDetail = {
+  symbol: string;
+  decimals: number;
+  value: number;
+  from: string;
+  to: string;
+};
+
+export type Result = {
+  status: boolean;
+  tx: string;
+  explorer: string;
+  block: number;
+  timestamp: number;
+  network: {
+    id: string;
+    logo: string;
+    name: string;
+  };
+  event: EventsEnum;
+  detail?: ResultDetail;
+};
 
 export type { CallbackBody, Network, Detail };

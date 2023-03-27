@@ -86,73 +86,77 @@ class TransactionChecker {
   }
 
   async checkBlock() {
-    const block = await app.web3.eth.getBlock("latest");
-    if (block != null && block.transactions != null && block.number !== preLastBlockNumber) {
-      preLastBlockNumber = block.number;
-      for (let txHash of block.transactions) {
-        app.web3.eth.getTransactionReceipt(txHash).then((tx: TransactionReceipt) => {
-          const result = {
-            status: tx.status,
-            tx: tx.blockHash,
-            explore: utils.network.explorer_tx.replace("{tx}", txHash),
-            block: block.number,
-            timestamp: block.timestamp,
-            network: {
-              id: utils.network.id,
-              logo: utils.network.logo,
-              name: utils.network.name,
-            },
-            event: EventsEnum.TRANSFER_NATIVE,
-          };
-          if (tx.logs.length) {
-            tx.logs.forEach((log: TransactionLog) => {
-              const event = this.getEvent(log.topics[0]);
-              if (event) {
-                log.topics.shift();
-                const transaction = app.web3.eth.abi.decodeLog(event[1].abi, log.data, log.topics);
-                const contract = new app.web3.eth.Contract(TOKEN_ABI_ERC20, log.address);
-                this.collectData(contract).then((data: any) => {
-                  const unit = Object.keys(app.web3.utils.unitMap).find(
-                    (key) =>
-                      app.web3.utils.unitMap[key] ===
-                      app.web3.utils.toBN(10).pow(app.web3.utils.toBN(data["decimals"])).toString(),
-                  );
-                  result.event = event[0];
-                  result["detail"] = new Object({
-                    symbol: data["symbol"],
-                    decimals: Number(data["decimals"]),
-                    value: Number(app.web3.utils.fromWei(transaction.value, unit)),
-                    from: transaction.from ?? tx.from,
-                    to: transaction.to ?? tx.from,
+    try {
+      const block = await app.web3.eth.getBlock("latest");
+      if (block != null && block.transactions != null && block.number !== preLastBlockNumber) {
+        preLastBlockNumber = block.number;
+        for (let txHash of block.transactions) {
+          app.web3.eth.getTransactionReceipt(txHash).then((tx: TransactionReceipt) => {
+            const result = {
+              status: tx.status,
+              tx: tx.blockHash,
+              explore: utils.network.explorer_tx.replace("{tx}", txHash),
+              block: block.number,
+              timestamp: block.timestamp,
+              network: {
+                id: utils.network.id,
+                logo: utils.network.logo,
+                name: utils.network.name,
+              },
+              event: EventsEnum.TRANSFER_NATIVE,
+            };
+            if (tx.logs.length) {
+              tx.logs.forEach((log: TransactionLog) => {
+                const event = this.getEvent(log.topics[0]);
+                if (event) {
+                  log.topics.shift();
+                  const transaction = app.web3.eth.abi.decodeLog(event[1].abi, log.data, log.topics);
+                  const contract = new app.web3.eth.Contract(TOKEN_ABI_ERC20, log.address);
+                  this.collectData(contract).then((data: any) => {
+                    const unit = Object.keys(app.web3.utils.unitMap).find(
+                      (key) =>
+                        app.web3.utils.unitMap[key] ===
+                        app.web3.utils.toBN(10).pow(app.web3.utils.toBN(data["decimals"])).toString(),
+                    );
+                    result.event = event[0];
+                    result["detail"] = new Object({
+                      symbol: data["symbol"],
+                      decimals: Number(data["decimals"]),
+                      value: Number(app.web3.utils.fromWei(transaction.value, unit)),
+                      from: transaction.from ?? tx.from,
+                      to: transaction.to ?? tx.from,
+                    });
+                    try {
+                      axios.post(config.pushUrl, result);
+                    } catch (error) {
+                      console.error(error);
+                    }
                   });
-                  try {
-                    axios.post(config.pushUrl, result);
-                  } catch (error) {
-                    console.error(error);
-                  }
-                });
-              }
-            });
-          } else {
-            app.web3.eth.getTransaction(txHash).then((data: any) => {
-              const unit = app.web3.utils.toBN(10).pow(app.web3.utils.toBN(config.baseResult.decimals)).toString();
-              result["detail"] = new Object({
-                symbol: config.baseResult.symbol,
-                decimals: config.baseResult.decimals,
-                value: Number(data.value / unit),
-                from: data.from,
-                to: data.to,
+                }
               });
-              try {
-                axios.post(config.pushUrl, result);
-              } catch (error) {
-                console.error(error);
-              }
-            });
-          }
-        });
-        // }
+            } else {
+              app.web3.eth.getTransaction(txHash).then((data: any) => {
+                const unit = app.web3.utils.toBN(10).pow(app.web3.utils.toBN(config.baseResult.decimals)).toString();
+                result["detail"] = new Object({
+                  symbol: config.baseResult.symbol,
+                  decimals: config.baseResult.decimals,
+                  value: Number(data.value / unit),
+                  from: data.from,
+                  to: data.to,
+                });
+                try {
+                  axios.post(config.pushUrl, result);
+                } catch (error) {
+                  console.error(error);
+                }
+              });
+            }
+          });
+        }
       }
+    } catch (error) {
+      await new Promise((r) => setTimeout(r, 1000 * 3));
+      this.checkBlock();
     }
   }
 }
@@ -160,9 +164,5 @@ class TransactionChecker {
 let preLastBlockNumber = 0;
 setInterval(function () {
   const transactionChecker = new TransactionChecker();
-  try {
-    transactionChecker.checkBlock();
-  } catch (err) {
-    transactionChecker.checkBlock();
-  }
+  transactionChecker.checkBlock();
 }, 2 * 1000);

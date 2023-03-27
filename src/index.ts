@@ -130,7 +130,7 @@ class TransactionChecker {
                     try {
                       axios.post(config.pushUrl, result);
                     } catch (error) {
-                      console.error(error);
+                      console.error(error?.code);
                     }
                   });
                 }
@@ -148,7 +148,7 @@ class TransactionChecker {
                 try {
                   axios.post(config.pushUrl, result);
                 } catch (error) {
-                  console.error(error);
+                  console.error(error?.code);
                 }
               });
             }
@@ -156,7 +156,14 @@ class TransactionChecker {
         }
       }
     } catch (error) {
-      await new Promise((r) => setTimeout(r, 1000 * 3));
+      if (error?.code === "ECONNREFUSED") {
+        console.log(
+          "Failed to connect to Ethereum node. Make sure the node is running and available at the specified address.",
+        );
+        } else {
+          console.log("An error occurred while connecting to an Ethereum node:", error?.message);
+        }
+        await new Promise((r) => setTimeout(r, 1000 * 3));
       this.checkBlock();
     }
   }

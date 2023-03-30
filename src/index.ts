@@ -92,6 +92,7 @@ class TransactionChecker {
       if (block != null && block.transactions != null && block.number !== preLastBlockNumber) {
         preLastBlockNumber = block.number;
         for (let txHash of block.transactions) {
+          console.log(`${txHash} -- ${utils.network.id}`);
           app.web3.eth.getTransactionReceipt(txHash).then((tx: TransactionReceipt) => {
             const result: Result = {
               status: tx.status,
@@ -160,10 +161,10 @@ class TransactionChecker {
         console.log(
           "Failed to connect to Ethereum node. Make sure the node is running and available at the specified address.",
         );
-        } else {
-          console.log("An error occurred while connecting to an Ethereum node:", error?.message);
-        }
-        await new Promise((r) => setTimeout(r, 1000 * 3));
+      } else {
+        console.log("An error occurred while connecting to an Ethereum node:", error?.message);
+      }
+      await new Promise((r) => setTimeout(r, 1000 * 3));
       this.checkBlock();
     }
   }
